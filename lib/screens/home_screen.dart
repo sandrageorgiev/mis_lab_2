@@ -1,11 +1,39 @@
 import 'package:flutter/material.dart';
+import 'package:mis_lab_2/screens/favorites_screen.dart';
 import 'package:mis_lab_2/services/api_services.dart';
+import 'package:mis_lab_2/services/notification_service.dart';
 import 'package:mis_lab_2/widgets/joke_type_card.dart';
+import 'package:timezone/timezone.dart' as tz;
 
 class HomeScreen extends StatelessWidget {
   final ApiService apiService = ApiService();
+  final NotificationService notificationService = NotificationService();
 
-  HomeScreen({super.key});
+  HomeScreen({super.key}) {
+    _scheduleNotification();
+  }
+
+  void _scheduleNotification() {
+    // Schedule daily notification at 9:00 AM
+    final now = tz.TZDateTime.now(tz.local);
+    final scheduledDate =
+        // tz.TZDateTime(tz.local, now.year, now.month, now.day, 9);
+        tz.TZDateTime(tz.local, now.year, now.month, now.day, 4, 25);
+
+    if (scheduledDate.isBefore(now)) {
+      scheduledDate.add(const Duration(days: 1));
+    }
+
+    final diff = scheduledDate.difference(now);
+    notificationService.showNotification(
+      0,
+      'Daily Joke',
+      'Open the app to see the joke of the day!',
+      diff.inSeconds,
+    );
+  }
+
+  // diff.inSeconds,
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +49,16 @@ class HomeScreen extends StatelessWidget {
               onPressed: () => Navigator.pushNamed(context, "/random_joke"),
               icon: const Icon(Icons.shuffle),
               color: Colors.white,
-            )
+            ),
+            IconButton(
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => const FavoritesScreen()),
+              ),
+              icon: const Icon(Icons.favorite),
+              color: Colors.white,
+            ),
           ],
         ),
         body: FutureBuilder<List<String>>(
